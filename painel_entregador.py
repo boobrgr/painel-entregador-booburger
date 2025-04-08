@@ -26,8 +26,18 @@ def tempo_restante(pedido):
 pedidos = load_json(DATA_FILE, [])
 entregadores = load_json(ENTREGADORES_FILE, [])
 
-# Seleção do entregador
-entregador = st.selectbox("Selecione seu nome", entregadores)
+# Seleção de entregador com sessão
+if "entregador_logado" not in st.session_state:
+    st.subheader("🔐 Selecione seu nome")
+    st.session_state.entregador_logado = st.selectbox("Entregador", entregadores)
+    st.stop()
+
+# Mostra entregador logado
+entregador = st.session_state.entregador_logado
+st.success(f"🧍 Entregador: {entregador}")
+if st.button("Trocar entregador"):
+    del st.session_state.entregador_logado
+    st.experimental_rerun()
 
 # Filtra pedidos despachados para este entregador
 meus_pedidos = [p for p in pedidos if p.get("status") == "despachado" and p.get("entregador") == entregador]
