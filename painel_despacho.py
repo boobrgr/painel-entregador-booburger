@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 import uuid
 
-# Checagem do ambiente para evitar erro de importação em ambientes sem streamlit
 try:
     import streamlit as st
     st.set_page_config(page_title="Painel de Despacho - Boo Burger", layout="wide")
@@ -113,7 +112,6 @@ if STREAMLIT_AVAILABLE:
             })
         save_json(DATA_FILE, pedidos)
 
-    # 🔔 ALERTA SONORO PARA PEDIDOS URGENTES
     urgente = any(
         p["status"] != "despachado" and 
         (100 - (tempo_espera(p) / (p.get("prazo_entrega_min", 30) * 60)) * 100) < 30 
@@ -135,8 +133,11 @@ if STREAMLIT_AVAILABLE:
     for nome in st.session_state.fila_entregadores:
         selecionado = (nome == st.session_state.get("entregador_selecionado"))
         classe = "entregador selecionado" if selecionado else "entregador"
-        entregador_display += f'<button class="{classe}" onclick=\"window.location.href=\'?entregador={nome}\'\">{nome}</button>'
+        entregador_display += f'<button class="{classe}" onclick="window.location.href=\'?entregador={nome}\'">{nome}</button>'
     st.markdown(entregador_display, unsafe_allow_html=True)
+
+    if "entregador_selecionado" not in st.session_state:
+        st.session_state.entregador_selecionado = entregadores[0]
 
     novo_nome = st.text_input("+ Novo Entregador", key="novo_entregador")
     if novo_nome and st.button("Adicionar"):
@@ -154,65 +155,64 @@ if STREAMLIT_AVAILABLE:
 
     for status, tab in zip(status_map, status_tabs):
         with tab:
-            for pedido in pedidos:
-                if pedido["status"] != status:
-                    continue
-                tempo = tempo_espera(pedido)
-                prazo_segundos = pedido.get("prazo_entrega_min", 30) * 60
-                progresso = max(0, min(100, 100 - (tempo / prazo_segundos * 100)))
-                cor_card = '#e6f4ea' if progresso > 60 else ('#fff8e1' if progresso > 30 else '#fdecea')
-                cor_grafico = '#28a745' if progresso > 60 else ('#ffc107' if progresso > 30 else '#dc3545')
+            zonas_existentes = sorted(set(p["zona"] for p in pedidos if p["status"] == status))
+            for zona in zonas_existentes:
+                st.markdown(f"### 🗺️ Zona {zona}")
+                pedidos_zona = [p for p in pedidos if p["status"] == status and p["zona"] == zona]
 
-                with st.container():
-                    st.markdown(f"""
-                        <div style='background-color:{cor_card}; border:1px solid #ddd; border-radius:16px; padding:16px; margin-bottom:12px;'>
-                    """, unsafe_allow_html=True)
+                for pedido in pedidos_zona:
+                    tempo = tempo_espera(pedido)
+                    prazo_segundos = pedido.get("prazo_entrega_min", 30) * 60
+                    progresso = max(0, min(100, 100 - (tempo / prazo_segundos * 100)))
+                    cor_card = '#e6f4ea' if progresso > 60 else ('#fff8e1' if progresso > 30 else '#fdecea')
+                    cor_grafico = '#28a745' if progresso > 60 else ('#ffc107' if progresso > 30 else '#dc3545')
 
-                    col1, col2, col3 = st.columns([4, 2, 2])
-                    col1.markdown(f"**#{pedido['id']} - {pedido['bairro']}**")
-                    col1.markdown(f"""
-    <div style='position: relative; width: 60px; height: 60px;'>
-        <svg viewBox=\"0 0 36 36\" style=\"transform: rotate(-90deg);\"> 
-          <path
-            d=\"M18 2.0845
-              a 15.9155 15.9155 0 0 1 0 31.831
-              a 15.9155 15.9155 0 0 1 0 -31.831\"
-            fill=\"none\"
-            stroke=\"#eee\"
-            stroke-width=\"3.8\"/>
-          <path
-            d=\"M18 2.0845
-              a 15.9155 15.9155 0 0 1 0.01 31.831\"
-            fill=\"none\"
-            stroke=\"{cor_grafico}\"
-            stroke-width=\"3.8\"
-            stroke-dasharray=\"{progresso}, 100\"/>
-        </svg>
-        <div style='position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:10px; font-weight:bold;'>
-            {int(tempo // 60)}min
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-                    col1.markdown(f"📞 Telefone: {pedido['telefone']}")
-                    col1.markdown(f"🧾 Código Ifood: {pedido['codigo_ifood']}")
-                    if pedido.get('entregador'):
-                        col1.markdown(f"🚚 Entregador: **{pedido['entregador']}**")
+                    with st.container():
+                        st.markdown(f"""
+                            <div style='background-color:{cor_card}; border:1px solid #ddd; border-radius:16px; padding:16px; margin-bottom:12px;'>
+                        """, unsafe_allow_html=True)
 
-                    url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
-                    col2.markdown(f"[🔗 Confirmar Ifood]({url_ifood})")
+                        col1, col2, col3 = st.columns([4, 2, 2])
+                        col1.markdown(f"**#{pedido['id']} - {pedido['bairro']}**")
+                        col1.markdown(f"📞 Telefone: {pedido['telefone']}")
+                        col1.markdown(f"🧾 Código Ifood: {pedido['codigo_ifood']}")
 
-                    if status == "em_preparo":
-                        with col3:
-                            with st.container():
-                                st.markdown("<div class='botao-vermelho'>", unsafe_allow_html=True)
-                                if st.button("Marcar Pronto", key=f"pronto_{pedido['id']}"):
-                                if 'entregador_selecionado' in st.session_state:
-                                    zona_pedido = pedido.get("zona")
-                                    if zona_pedido:
-                                        entregador_zona = [p for p in pedidos if p.get("status") == "pronto" and p.get("zona") == zona_pedido and p.get("entregador") == st.session_state.entregador_selecionado]
-                                        if not entregador_zona:
-                                            pedido["entregador"] = st.session_state.entregador_selecionado
-                                pedido["status"] = "pronto"
+                        if pedido.get('entregador'):
+                            col1.markdown(f"🚚 Entregador: **{pedido['entregador']}**")
+                            if st.button(f"❌ Remover entregador do pedido #{pedido['id']}", key=f"remover_{pedido['id']}"):
+                                pedido['entregador'] = None
+                                save_json(DATA_FILE, pedidos)
+                                st.rerun()
+
+                        url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
+                        col2.markdown(f"[🔗 Confirmar Ifood]({url_ifood})")
+
+                        if status == "em_preparo":
+                            with col3:
+                                with st.container():
+                                    st.markdown("<div class='botao-vermelho'>", unsafe_allow_html=True)
+                                    if st.button("Marcar Pronto", key=f"pronto_{pedido['id']}"):
+                                        pedido["status"] = "pronto"
+                                        zona_pedido = pedido.get("zona")
+                                        if zona_pedido and st.session_state.fila_entregadores:
+                                            pedido["entregador"] = st.session_state.fila_entregadores[0]
+                                        save_json(DATA_FILE, pedidos)
+                                        st.rerun()
+                                    st.markdown("</div>", unsafe_allow_html=True)
+
+                        elif status == "pronto":
+                            with col3:
+                                with st.container():
+                                    st.markdown("<div class='botao-amarelo'>", unsafe_allow_html=True)
+                                    if st.button("Despachar", key=f"despachar_{pedido['id']}"):
+                                        pedido["status"] = "despachado"
+                                        if pedido.get("entregador") in st.session_state.fila_entregadores:
+                                            st.session_state.fila_entregadores.remove(pedido["entregador"])
+                                            st.session_state.fila_entregadores.append(pedido["entregador"])
+                                        save_json(DATA_FILE, pedidos)
+                                        st.rerun()
+                                    st.markdown("</div>", unsafe_allow_html=True)
+
     save_json(DATA_FILE, pedidos)
                                     st.rerun()
                                 st.markdown("</div>", unsafe_allow_html=True)
