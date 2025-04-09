@@ -29,8 +29,8 @@ pedidos_teste = [
         "prazo_entrega_min": 30,
         "telefone": "(71) 9 9999-0002",
         
-        "itens": "🍔 Boo x1
-🍟 Batata x2",
+        "itens": """🍔 Boo x1
+🍟 Batata x2""",
         "cliente": "Rebeca",
         "consumer_id": "2051",
         "codigo_ifood": "9872"
@@ -45,8 +45,8 @@ pedidos_teste = [
         "prazo_entrega_min": 30,
         "telefone": "(71) 9 9999-0003",
         
-        "itens": "🍔 Bacon King x1
-🥤 Refri x1",
+        "itens": """🍔 Bacon King x1
+🥤 Refri x1""",
         "cliente": "Larissa",
         "consumer_id": "2052",
         "codigo_ifood": "9873"
