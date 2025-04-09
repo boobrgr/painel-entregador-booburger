@@ -206,13 +206,14 @@ if STREAMLIT_AVAILABLE:
                             with st.container():
                                 st.markdown("<div class='botao-vermelho'>", unsafe_allow_html=True)
                                 if st.button("Marcar Pronto", key=f"pronto_{pedido['id']}"):
-                                    if 'entregador_selecionado' in st.session_state:
+    if 'entregador_selecionado' in st.session_state:
         zona_pedido = pedido.get("zona")
-        entregador_zona = [p for p in pedidos if p.get("status") == "pronto" and p.get("zona") == zona_pedido and p.get("entregador") == st.session_state.entregador_selecionado]
-        if not entregador_zona:
-            pedido["entregador"] = st.session_state.entregador_selecionado
-
-                                    save_json(DATA_FILE, pedidos)
+        if zona_pedido:
+            entregador_zona = [p for p in pedidos if p.get("status") == "pronto" and p.get("zona") == zona_pedido and p.get("entregador") == st.session_state.entregador_selecionado]
+            if not entregador_zona:
+                pedido["entregador"] = st.session_state.entregador_selecionado
+    pedido["status"] = "pronto"
+    save_json(DATA_FILE, pedidos)
                                     st.rerun()
                                 st.markdown("</div>", unsafe_allow_html=True)
 
