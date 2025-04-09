@@ -123,49 +123,27 @@ if STREAMLIT_AVAILABLE:
 
     for status, tab in zip(status_map, status_tabs):
         with tab:
-            zonas_existentes = sorted(set(p["zona"] for p in pedidos if p["status"] == status))
-            for zona in zonas_existentes:
-                st.markdown(f"### 🗺️ Zona {zona}")
-                pedidos_zona = [p for p in pedidos if p["status"] == status and p["zona"] == zona]
+            pedidos_status = sorted([p for p in pedidos if p["status"] == status], key=lambda x: x["hora_criacao"])
 
-                pedidos_zona.sort(key=lambda x: x["hora_criacao"])
-                grupos_agrupados = []
-                grupo_temp = []
+            cor_base = {
+                1: "#e6f4ea",
+                2: "#fef7e0",
+                3: "#fdecea",
+                4: "#e0f7fa",
+                5: "#f3e5f5",
+                6: "#fff3e0",
+                7: "#ede7f6",
+                8: "#fbe9e7"
+            }
 
-                for pedido in pedidos_zona:
-                    if not grupo_temp:
-                        grupo_temp.append(pedido)
-                        continue
-                    if abs(pedido["hora_criacao"] - grupo_temp[-1]["hora_criacao"]) <= 420:
-                        grupo_temp.append(pedido)
-                    else:
-                        grupos_agrupados.append(grupo_temp)
-                        grupo_temp = [pedido]
-                if grupo_temp:
-                    grupos_agrupados.append(grupo_temp)
-
-                cor_base = {
-                    1: "#e6f4ea",
-                    2: "#fef7e0",
-                    3: "#fdecea",
-                    4: "#e0f7fa",
-                    5: "#f3e5f5",
-                    6: "#fff3e0",
-                    7: "#ede7f6",
-                    8: "#fbe9e7"
-                }
-
-                for grupo in grupos_agrupados:
-                    tonalidade = cor_base.get(zona, "#ffffff")
-
-    cor = cores_base[idx % len(cores_base)]
-    for pedido in grupo:
+    # Removido: linha inválida duplicada
+    for pedido in pedidos_status:
         tempo = tempo_espera(pedido)
         restante = pedido.get("prazo_entrega_min", 30) * 60 - tempo
         restante_min = max(0, int(restante // 60))
 
         st.markdown(f"""
-            <div style='background-color:{cor}; border-radius:10px; padding:15px; margin-bottom:10px;'>
+            <div style='background-color:{cor_base.get(pedido['zona'], '#ffffff')}; border-radius:10px; padding:15px; margin-bottom:10px;'>
             <strong>Pedido #{pedido['id']}</strong><br>
             Bairro: {pedido['bairro']}<br>
             Telefone: {pedido['telefone']}<br>
