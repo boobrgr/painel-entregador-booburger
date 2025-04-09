@@ -130,13 +130,29 @@ if STREAMLIT_AVAILABLE:
         st.session_state.fila_entregadores = entregadores[:]
 
     entregador_display = ""
-    for nome in st.session_state.fila_entregadores:
-        selecionado = (nome == st.session_state.get("entregador_selecionado"))
+    if "entregadores_selecionados" not in st.session_state:
+        st.session_state.entregadores_selecionados = []
+
+    for i, nome in enumerate(entregadores):
+        posicao = None
+        if nome in st.session_state.fila_entregadores:
+            posicao = st.session_state.fila_entregadores.index(nome) + 1
+
+        selecionado = nome in st.session_state.entregadores_selecionados
         classe = "entregador selecionado" if selecionado else "entregador"
-        if st.button(nome, key=f"selecionar_{nome}"):
-            if nome in st.session_state.fila_entregadores:
-                st.session_state.fila_entregadores.remove(nome)
-            st.session_state.fila_entregadores.insert(0, nome)
+        rotulo = f"{nome} ({posicao}º)" if posicao else nome
+
+        if st.button(rotulo, key=f"selecionar_{nome}"):
+            if nome not in st.session_state.entregadores_selecionados:
+                st.session_state.entregadores_selecionados.append(nome)
+                if nome in st.session_state.fila_entregadores:
+                    st.session_state.fila_entregadores.remove(nome)
+                st.session_state.fila_entregadores.append(nome)
+
+    entregador_display = ""
+    for i, nome in enumerate(st.session_state.fila_entregadores):
+        entregador_display += f'<div class="entregador selecionado">{nome} ({i+1}º)</div>'
+
     st.markdown(entregador_display, unsafe_allow_html=True)
 
     if "entregador_selecionado" not in st.session_state:
