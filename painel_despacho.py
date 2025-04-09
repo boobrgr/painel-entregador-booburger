@@ -133,7 +133,10 @@ if STREAMLIT_AVAILABLE:
     for nome in st.session_state.fila_entregadores:
         selecionado = (nome == st.session_state.get("entregador_selecionado"))
         classe = "entregador selecionado" if selecionado else "entregador"
-        entregador_display += f'<button class="{classe}" onclick="window.location.href=\'?entregador={nome}\'">{nome}</button>'
+        if st.button(nome, key=f"selecionar_{nome}"):
+            if nome in st.session_state.fila_entregadores:
+                st.session_state.fila_entregadores.remove(nome)
+            st.session_state.fila_entregadores.insert(0, nome)
     st.markdown(entregador_display, unsafe_allow_html=True)
 
     if "entregador_selecionado" not in st.session_state:
