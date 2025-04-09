@@ -8,7 +8,7 @@ st.set_page_config(page_title="Painel do Entregador - Boo Burger", layout="wide"
 st.title("📦 Painel do Entregador - Boo Burger")
 
 DATA_FILE = "pedidos.json"
-ENTREGADORES_FILE = "entregadores.json"
+USUARIOS_FILE = "usuarios.json"
 
 # Funções utilitárias
 def load_json(file, default):
@@ -22,22 +22,41 @@ def tempo_restante(pedido):
     restante = prazo_segundos - (time.time() - pedido["hora_criacao"])
     return max(0, int(restante))
 
-# Carrega dados
-pedidos = load_json(DATA_FILE, [])
-entregadores = load_json(ENTREGADORES_FILE, [])
+# Base real de usuários extraída do Consumer
+usuarios = load_json(USUARIOS_FILE, {
+    "94630135553": "Edimilson",
+    "07480160585": "Italo",
+    "07687804546": "Jonathan",
+    "86893311583": "Lucas",
+    "02741214506": "Montanha",
+    "86048158564": "Nailton",
+    "81902220587": "Nino",
+    "03577914521": "Davi Medeiros"
+})
 
-# Seleção de entregador com sessão
-if "entregador_logado" not in st.session_state:
-    st.subheader("🔐 Selecione seu nome")
-    st.session_state.entregador_logado = st.selectbox("Entregador", entregadores)
+# Login com CPF
+if "cpf_logado" not in st.session_state:
+    st.subheader("🔐 Login do Entregador")
+    cpf = st.text_input("Digite seu CPF (somente números):")
+    if st.button("Entrar"):
+        if cpf in usuarios:
+            st.session_state.cpf_logado = cpf
+            st.session_state.entregador_nome = usuarios[cpf]
+            st.experimental_rerun()
+        else:
+            st.error("CPF não encontrado. Contate o responsável.")
     st.stop()
 
-# Mostra entregador logado
-entregador = st.session_state.entregador_logado
-st.success(f"🧍 Entregador: {entregador}")
-if st.button("Trocar entregador"):
-    del st.session_state.entregador_logado
+# Mostra nome do entregador logado
+entregador = st.session_state.entregador_nome
+st.success(f"🧍 Entregador logado: {entregador}")
+if st.button("🔁 Sair"):
+    del st.session_state.cpf_logado
+    del st.session_state.entregador_nome
     st.experimental_rerun()
+
+# Carrega pedidos
+pedidos = load_json(DATA_FILE, [])
 
 # Filtra pedidos despachados para este entregador
 meus_pedidos = [p for p in pedidos if p.get("status") == "despachado" and p.get("entregador") == entregador]
