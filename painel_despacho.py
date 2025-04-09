@@ -182,6 +182,35 @@ if STREAMLIT_AVAILABLE:
                             if st.button(f"❌ Remover entregador do pedido #{pedido['id']}", key=f"remover_{pedido['id']}"):
                                 pedido['entregador'] = None
                                 save_json(DATA_FILE, pedidos)
-                st.rerun()
+                                st.rerun()
 
-                                                url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
+                        url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
+                        col2.markdown(f"[🔗 Confirmar Ifood]({url_ifood})")
+
+                        if status == "em_preparo":
+                            with col3:
+                                with st.container():
+                                    st.markdown("<div class='botao-vermelho'>", unsafe_allow_html=True)
+                                    if st.button("Marcar Pronto", key=f"pronto_{pedido['id']}"):
+                                        pedido["status"] = "pronto"
+                                        zona_pedido = pedido.get("zona")
+                                        if zona_pedido and st.session_state.fila_entregadores:
+                                            pedido["entregador"] = st.session_state.fila_entregadores[0]
+                                        save_json(DATA_FILE, pedidos)
+                                        st.rerun()
+                                    st.markdown("</div>", unsafe_allow_html=True)
+
+                        elif status == "pronto":
+                            with col3:
+                                with st.container():
+                                    st.markdown("<div class='botao-amarelo'>", unsafe_allow_html=True)
+                                    if st.button("Despachar", key=f"despachar_{pedido['id']}"):
+                                        pedido["status"] = "despachado"
+                                        if pedido.get("entregador") in st.session_state.fila_entregadores:
+                                            st.session_state.fila_entregadores.remove(pedido["entregador"])
+                                            st.session_state.fila_entregadores.append(pedido["entregador"])
+                                        save_json(DATA_FILE, pedidos)
+                                        st.rerun()
+                                    st.markdown("</div>", unsafe_allow_html=True)
+
+    save_json(DATA_FILE, pedidos)
