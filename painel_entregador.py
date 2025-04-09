@@ -56,7 +56,19 @@ if st.button("🔁 Sair"):
     st.experimental_rerun()
 
 # Carrega pedidos
-pedidos = load_json(DATA_FILE, [])
+pedidos = load_json(DATA_FILE, [{
+  "id": 999,
+  "bairro": "VILAS DO ATLÂNTICO",
+  "zona": 4,
+  "status": "despachado",
+  "entregador": "Davi Medeiros",
+  "hora_criacao": 1712682000,
+  "prazo_entrega_min": 30,
+  "telefone": "(71) 9 8888-1234",
+  "consumer_id": "00000000-0000-0000-0000-000000000999",
+  "codigo_ifood": "00009999"
+}
+])
 
 # Filtra pedidos despachados para este entregador
 meus_pedidos = [p for p in pedidos if p.get("status") == "despachado" and p.get("entregador") == entregador]
