@@ -182,7 +182,7 @@ if STREAMLIT_AVAILABLE:
                             if st.button(f"❌ Remover entregador do pedido #{pedido['id']}", key=f"remover_{pedido['id']}"):
                                 pedido['entregador'] = None
                                 save_json(DATA_FILE, pedidos)
-                                st.rerun()
+                st.rerun()
 
                         url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
                         col2.markdown(f"[🔗 Confirmar Ifood]({url_ifood})")
