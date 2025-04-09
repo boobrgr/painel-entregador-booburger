@@ -48,7 +48,7 @@ if STREAMLIT_AVAILABLE:
         </style>
     """, unsafe_allow_html=True)
 
-    entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino"]
+    entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "Davi Medeiros"]
 
     zonas = {
         1: ["ALPHAVILLE ABRANTES", "ABRANTES", "CATU DE ABRANTES"],
@@ -195,6 +195,8 @@ if STREAMLIT_AVAILABLE:
 """, unsafe_allow_html=True)
                     col1.markdown(f"📞 Telefone: {pedido['telefone']}")
                     col1.markdown(f"🧾 Código Ifood: {pedido['codigo_ifood']}")
+                    if pedido.get('entregador'):
+                        col1.markdown(f"🚚 Entregador: **{pedido['entregador']}**")
 
                     url_ifood = "https://confirmacao-entrega-propria.ifood.com.br/numero-pedido"
                     col2.markdown(f"[🔗 Confirmar Ifood]({url_ifood})")
@@ -204,7 +206,12 @@ if STREAMLIT_AVAILABLE:
                             with st.container():
                                 st.markdown("<div class='botao-vermelho'>", unsafe_allow_html=True)
                                 if st.button("Marcar Pronto", key=f"pronto_{pedido['id']}"):
-                                    pedido["status"] = "pronto"
+                                    if 'entregador_selecionado' in st.session_state:
+        zona_pedido = pedido.get("zona")
+        entregador_zona = [p for p in pedidos if p.get("status") == "pronto" and p.get("zona") == zona_pedido and p.get("entregador") == st.session_state.entregador_selecionado]
+        if not entregador_zona:
+            pedido["entregador"] = st.session_state.entregador_selecionado
+
                                     save_json(DATA_FILE, pedidos)
                                     st.rerun()
                                 st.markdown("</div>", unsafe_allow_html=True)
