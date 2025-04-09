@@ -38,7 +38,7 @@ usuarios = load_json(USUARIOS_FILE, {
 if "cpf_logado" not in st.session_state:
     st.subheader("🔐 Login do Entregador")
     cpf = st.text_input("Digite seu CPF (somente números):")
-    if st.button("Entrar"):
+    if st.button("Entrar") or (cpf and len(cpf) == 11):
         if cpf in usuarios:
             st.session_state.cpf_logado = cpf
             st.session_state.entregador_nome = usuarios[cpf]
