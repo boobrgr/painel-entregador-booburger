@@ -53,4 +53,3 @@ pedidos_teste = [
     }
 ]
 
-[VERSÃO CORRIGIDA ABAIXO - APLICADA DIRETAMENTE AQUI (continua no próximo passo por limite de espaço)]
