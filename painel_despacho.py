@@ -1,5 +1,5 @@
 # painel_despacho.py
-# (código completo corrigido com identação correta e estrutura limpa)
+
 
 # Dados de teste para pedidos
 import time
@@ -52,4 +52,5 @@ pedidos_teste = [
         "codigo_ifood": "9873"
     }
 ]
+
 
