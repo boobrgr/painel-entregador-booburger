@@ -151,6 +151,7 @@ if STREAMLIT_AVAILABLE:
         cor = cor_zona.get(pedido['zona'], '#ffffff')
         restante = tempo_restante(pedido)
         with card_colunas[i % 4]:
+            status_cor = '#dc3545' if pedido['status'] == 'em_preparo' else ('#28a745' if pedido['status'] == 'pronto' else '#ffc107')
             st.markdown(f"""
                 <div style='background-color:{cor}; border-radius:16px; padding:16px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);'>
                     <strong>Pedido:</strong> {pedido['id']}<br>
@@ -158,15 +159,17 @@ if STREAMLIT_AVAILABLE:
                     <strong>Cliente:</strong> {pedido['cliente']}<br>
                     <strong>Bairro:</strong> {pedido['bairro']}<br>
                     <div style='margin: 6px 0; font-size:15px;'>{pedido['itens'].replace(chr(10), '<br>')}</div>
-                    <div style='width:60px;height:60px;border-radius:50%;border:8px solid #444;background:#fff;margin:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:16px;'>
+                    <div style='width:65px;height:65px;border-radius:50%;border:6px solid {status_cor};background:#fff;margin:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:15px;'>
                         <div>{restante}</div><div style='font-size:10px;'>min</div>
                     </div>
             """, unsafe_allow_html=True)
 
-            if st.button('Pronto', key=f"pronto_{pedido['id']}"):
+            st.markdown("<div style='text-align:center; margin-top:10px;'>", unsafe_allow_html=True)
+            if st.button('✅ Pronto', key=f"pronto_{pedido['id']}"):
                 pedido['status'] = 'pronto'
-            if st.button('Saiu para Entrega', key=f"despachado_{pedido['id']}"):
+            if st.button('🚚 Saiu para Entrega', key=f"despachado_{pedido['id']}"):
                 pedido['status'] = 'despachado'
+            st.markdown("</div>", unsafe_allow_html=True)
 
             st.markdown(f"""
                 <div style='font-size:11px; text-align:center; margin-top:8px;'>
