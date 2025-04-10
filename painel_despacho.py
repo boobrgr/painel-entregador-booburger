@@ -17,6 +17,19 @@ except ModuleNotFoundError:
 if STREAMLIT_AVAILABLE:
     st.markdown("""
         <style>
+            body {
+                background-color: #000;
+            }
+            .top-bar {
+                background-color: #000;
+                color: white;
+                text-align: center;
+                padding: 10px 0;
+                font-size: 24px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                margin-bottom: 20px;
+            }
             .entregador {
                 display: inline-block;
                 padding: 10px 20px;
@@ -32,59 +45,32 @@ if STREAMLIT_AVAILABLE:
                 background-color: #28a745 !important;
                 color: white;
             }
-            .botao-vermelho button {
-                background-color: #dc3545 !important;
-                color: white;
-            }
-            .botao-verde button {
-                background-color: #28a745 !important;
-                color: white;
-            }
-            .botao-amarelo button {
-                background-color: #ffc107 !important;
-                color: black;
-            }
         </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+        <div class='top-bar'>
+            <img src='https://i.imgur.com/Qr6l0wK.png' width='40' style='vertical-align: middle; margin-right:10px;'>
+            Boo Burger - Painel de Despacho
+        </div>
     """, unsafe_allow_html=True)
 
     entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "Davi Medeiros"]
 
-    zonas = {
-        1: ["ALPHAVILLE ABRANTES", "ABRANTES", "CATU DE ABRANTES"],
-        2: ["PORTÃO  (FINAL)", "PORTÃO  (ENTRADA)", "ENCONTRO DAS ÁGUAS"],
-        3: ["FOZ DO JOANES", "PRAIA DE BURAQUINHO", "BURAQUINHO", "MIRAGEM", "GRANJAS REUNIDAS"],
-        4: ["LOTEAMENTO MIRAGEM", "VILAS DO ATLÂNTICO", "FAZENDA PITANGUEIRAS", "BOSQUE DO QUIOSQUE", "MORADA DO SOL"],
-        5: ["JARDIM AEROPORTO", "PARQUE JOCKEY CLUBE", "ARACUI", "CENTRO", "VILA PRAIANA", "SANTOS DUMONT", "IPITANGA"],
-        6: ["PIATÃ", "ITAPUÃ", "MUSSURUNGA", "TERMINAL DO AEROPORTO", "STELLA MARIS", "SÃO CRISTÓVÃO",
-            "PRAIA DO FLAMENGO (depois da Pipa)", "PRAIA DO FLAMENGO (até a Pipa)", "PATAMARES"],
-        7: ["JARDIM DAS MARGARIDAS", "ITINGA", "JARDIM PEROLA NEGRA", "JARDIM METRÓPOLE", "PARQUE SANTA RITA",
-            "JARDIM TROPICAL", "JARDIM TARUMÃ", "QUINTAS DO PICUAIA", "JARDIM CIDADE NOVA", "JARDIM CENTENÁRIO",
-            "POUSO ALEGRE", "PARQUE SANTA JÚLIA", "VILA DE SENNA", "SÃO SALVADOR"],
-        8: ["JARDIM IPITANGA", "DIAMANTE", "ÁGUAS FINAS", "VIDA NOVA", "JARDIM MEU IDEAL",
-            "JARDIM CARAPINA", "RECREIO DE IPITANGA", "CAJI"]
-    }
-
-    st.markdown("<h2 style='margin-top: -10px;'>Painel de Pedidos - <span style='color:#f97316;'>Boo Burger</span></h2>", unsafe_allow_html=True)
-
     if "fila_entregadores" not in st.session_state:
         st.session_state.fila_entregadores = []
 
-    st.subheader("Entregadores")
-    cols = st.columns(len(entregadores_default))
-    for i, (entregador, col) in enumerate(zip(entregadores_default, cols), start=1):
-        if entregador in st.session_state.fila_entregadores:
-            pos = st.session_state.fila_entregadores.index(entregador) + 1
-            col.markdown(f"""
-                <div style='background-color:#28a745;padding:10px 12px;border-radius:12px;color:white;font-weight:bold;text-align:center;'>
-                    {entregador}<br><span style='font-size:12px'>({pos}º)</span>
-                </div>
-            """, unsafe_allow_html=True)
-        else:
-            if col.button(entregador, key=f"entregador_{i}"):
-                st.session_state.fila_entregadores.append(entregador)
-                st.experimental_rerun()
-
-    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<div style='display:flex;justify-content:center;gap:10px;margin-bottom:20px;'>", unsafe_allow_html=True)
+    for i, nome in enumerate(entregadores_default):
+        selecionado = nome in st.session_state.fila_entregadores
+        posicao = st.session_state.fila_entregadores.index(nome)+1 if selecionado else ""
+        cor = "#28a745" if selecionado else "#eee"
+        texto = f"{nome} ({posicao}º)" if selecionado else nome
+        if st.button(texto, key=f"entregador_btn_{i}"):
+            if not selecionado:
+                st.session_state.fila_entregadores.append(nome)
+        st.markdown(f"<style>#entregador_btn_{i}{{background-color:{cor};color:{'white' if selecionado else 'black'};border-radius:12px;}}</style>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     pedidos = [
         {
@@ -133,48 +119,40 @@ if STREAMLIT_AVAILABLE:
         }
     ]
 
-    cor_zona = {
-        5: "#d1f4ff",
-        6: "#fff1ba"
-    }
-
     def tempo_restante(pedido):
         tempo = int(time.time() - pedido['hora_criacao'])
         restante = pedido['prazo_entrega_min'] * 60 - tempo
         return max(0, int(restante // 60))
 
-    st.markdown("<h4>Pedidos :</h4>", unsafe_allow_html=True)
-
     card_colunas = st.columns(4)
 
+    pedidos.sort(key=lambda p: (p['status'] != 'em_preparo', p['hora_criacao']))
     for i, pedido in enumerate(pedidos):
-        cor = cor_zona.get(pedido['zona'], '#ffffff')
         restante = tempo_restante(pedido)
+        status_cor = '#dc3545' if pedido['status'] == 'em_preparo' else ('#28a745' if pedido['status'] == 'pronto' else '#ffc107')
         with card_colunas[i % 4]:
-            status_cor = '#dc3545' if pedido['status'] == 'em_preparo' else ('#28a745' if pedido['status'] == 'pronto' else '#ffc107')
             st.markdown(f"""
-                <div style='background-color:{cor}; border-radius:16px; padding:16px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);'>
-                    <strong>Pedido:</strong> {pedido['id']}<br>
-                    <strong>Ifood:</strong> #{pedido['codigo_ifood']}<br>
-                    <strong>Cliente:</strong> {pedido['cliente']}<br>
-                    <strong>Bairro:</strong> {pedido['bairro']}<br>
-                    <div style='margin: 6px 0; font-size:15px;'>{pedido['itens'].replace(chr(10), '<br>')}</div>
+                <div style='background:#fff;border-radius:20px;padding:14px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15); opacity:0.4;' if pedido['status'] != 'em_preparo' else "<div style='background:#fff;border-radius:20px;padding:14px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);'">
+                    <div style='display:flex;justify-content:space-between;'>
+                        <div><strong>Pedido:</strong> {pedido['id']}</div>
+                        {'<span style=\'color:red;font-weight:bold;cursor:pointer;\'>❌</span>' if not st.button(f'Remover {pedido["id"]}', key=f'remove_{pedido["id"]}') else pedidos.pop(i)}
+                    </div>
+                    <div style='margin-top:4px;'>
+                        <strong>Ifood:</strong> #{pedido['codigo_ifood']}<br>
+                        <strong>Cliente:</strong> {pedido['cliente']}<br>
+                        <strong>Bairro:</strong> {pedido['bairro']}
+                    </div>
+                    <div style='margin:10px 0;font-size:15px;'>{pedido['itens'].replace(chr(10), '<br>')}</div>
                     <div style='width:65px;height:65px;border-radius:50%;border:6px solid {status_cor};background:#fff;margin:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:15px;'>
                         <div>{restante}</div><div style='font-size:10px;'>min</div>
                     </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown("<div style='text-align:center; margin-top:10px;'>", unsafe_allow_html=True)
-            if st.button('✅ Pronto', key=f"pronto_{pedido['id']}"):
-                pedido['status'] = 'pronto'
-            if st.button('🚚 Saiu para Entrega', key=f"despachado_{pedido['id']}"):
-                pedido['status'] = 'despachado'
-            st.markdown("</div>", unsafe_allow_html=True)
-
-            st.markdown(f"""
-                <div style='font-size:11px; text-align:center; margin-top:8px;'>
-                    Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
-                    Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min']*60).strftime('%H:%M')}
-                </div>
+                    <div style='display:flex;justify-content:center;gap:8px;margin-top:10px;'>
+                        {st.button('✅ Pronto', key=f'pronto_{pedido["id"]}') and pedido.update({'status': 'pronto'}) or ''}
+                        {st.button('🚚 Saiu', key=f'despachado_{pedido["id"]}') and pedido.update({'status': 'despachado'}) or ''}
+                    </div>
+                    <div style='font-size:11px;text-align:center;margin-top:8px;'>
+                        Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
+                        Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min']*60).strftime('%H:%M')}
+                    </div>
                 </div>
             """, unsafe_allow_html=True)
