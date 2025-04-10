@@ -67,7 +67,6 @@ if STREAMLIT_AVAILABLE:
     DATA_FILE = "pedidos.json"
     ENTREGADORES_FILE = "entregadores.json"
 
-    st.image("IMG_6249 (4).PNG", width=80)
     st.markdown("<h2 style='margin-top: -10px;'>Painel de Pedidos - <span style='color:#f97316;'>Boo Burger</span></h2>", unsafe_allow_html=True)
 
     if "fila_entregadores" not in st.session_state:
@@ -157,6 +156,7 @@ if STREAMLIT_AVAILABLE:
             pedido['status'] = 'pronto'
         if st.session_state.get(f'marcar_despachado_{pedido["id"]}'):
             pedido['status'] = 'despachado'
+
     for i, pedido in enumerate(pedidos):
         cor = cor_zona.get(pedido['zona'], '#ffffff')
         restante = tempo_restante(pedido)
@@ -174,8 +174,8 @@ if STREAMLIT_AVAILABLE:
                     </div>
 
                     <div style='display:flex;justify-content:center;gap:8px;margin-top:8px;'>
-                        <form method='post'><button name='marcar_pronto_{pedido["id"]}' style='background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Pronto</button></form>
-                        <form method='post'><button name='marcar_despachado_{pedido["id"]}' style='background:#ffc107;border:none;color:#000;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Saiu para Entrega</button></form>
+                        <form method='post'><button name='marcar_pronto_{pedido['id']}' style='background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Pronto</button></form>
+                        <form method='post'><button name='marcar_despachado_{pedido['id']}' style='background:#ffc107;border:none;color:#000;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Saiu para Entrega</button></form>
                     </div>
 
                     <div style='font-size:11px; text-align:center; margin-top:8px;'>
