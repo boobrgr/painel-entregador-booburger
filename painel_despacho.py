@@ -138,4 +138,43 @@ if STREAMLIT_AVAILABLE:
         }
     ]
 
-    # Continuação do painel será inserida abaixo...
+    cor_zona = {
+        5: "#d1f4ff",
+        6: "#fff1ba"
+    }
+
+    def tempo_restante(pedido):
+        tempo = int(time.time() - pedido['hora_criacao'])
+        restante = pedido['prazo_entrega_min'] * 60 - tempo
+        return max(0, int(restante // 60))
+
+    st.markdown("<h4>Pedidos :</h4>", unsafe_allow_html=True)
+
+    card_colunas = st.columns(4)
+    for i, pedido in enumerate(pedidos):
+        cor = cor_zona.get(pedido['zona'], '#ffffff')
+        restante = tempo_restante(pedido)
+        with card_colunas[i % 4]:
+            st.markdown(f"""
+                <div style='background-color:{cor}; border-radius:16px; padding:16px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);'>
+                    <strong>Pedido:</strong> {pedido['id']}<br>
+                    <strong>Ifood:</strong> #{pedido['codigo_ifood']}<br>
+                    <strong>Cliente:</strong> {pedido['cliente']}<br>
+                    <strong>Bairro:</strong> {pedido['bairro']}<br>
+                    <div style='margin: 6px 0; font-size:15px;'>{pedido['itens'].replace(chr(10), '<br>')}</div>
+
+                    <div style='width:60px;height:60px;border-radius:50%;border:8px solid #444;background:#fff;margin:auto;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;'>
+                        {restante}<br><span style='font-size:10px;'>min</span>
+                    </div>
+
+                    <div style='display:flex;justify-content:center;gap:8px;margin-top:8px;'>
+                        <button style='background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:8px;'>Pronto</button>
+                        <button style='background:#ffc107;border:none;color:#000;padding:6px 10px;border-radius:8px;'>Saiu para Entrega</button>
+                    </div>
+
+                    <div style='font-size:11px; text-align:center; margin-top:8px;'>
+                        Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
+                        Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min']*60).strftime('%H:%M')}
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
