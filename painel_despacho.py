@@ -70,4 +70,23 @@ if STREAMLIT_AVAILABLE:
     st.image("https://i.imgur.com/Qr6l0wK.png", width=80)
     st.markdown("<h2 style='margin-top: -10px;'>Painel de Pedidos - <span style='color:#f97316;'>Boo Burger</span></h2>", unsafe_allow_html=True)
 
-    # Continuação do painel será inserida a seguir...
+    if "fila_entregadores" not in st.session_state:
+        st.session_state.fila_entregadores = []
+
+    st.subheader("Entregadores")
+    cols = st.columns(len(entregadores_default))
+    for i, (entregador, col) in enumerate(zip(entregadores_default, cols), start=1):
+        if entregador in st.session_state.fila_entregadores:
+            pos = st.session_state.fila_entregadores.index(entregador) + 1
+            col.markdown(f"""
+                <div style='background-color:#28a745;padding:10px 12px;border-radius:12px;color:white;font-weight:bold;text-align:center;'>
+                    {entregador}<br><span style='font-size:12px'>({pos}º)</span>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            if col.button(entregador, key=f"entregador_{i}"):
+                st.session_state.fila_entregadores.append(entregador)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # Continuação do painel será inserida abaixo...
