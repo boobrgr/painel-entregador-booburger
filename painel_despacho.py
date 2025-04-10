@@ -14,22 +14,18 @@ st.markdown("""
         padding: 10px;
         margin-bottom: 30px;
     }
-    .entregadores {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        margin-bottom: 30px;
-    }
-    .entregador {
-        text-align: center;
-        background-color: #eee;
+    .entregador-button {
+        padding: 8px 12px;
+        border: none;
         border-radius: 12px;
-        padding: 10px;
-        width: 90px;
+        background-color: #eee;
         font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        height: 60px;
     }
-    .entregador.selecionado {
-        background-color: #28a745;
+    .entregador-selecionado {
+        background-color: #28a745 !important;
         color: white;
     }
     .pedido-card {
@@ -80,18 +76,18 @@ entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "
 if "fila_entregadores" not in st.session_state:
     st.session_state.fila_entregadores = []
 
-st.markdown("<div class='entregadores'>", unsafe_allow_html=True)
-for nome in entregadores_default:
-    selecionado = nome in st.session_state.fila_entregadores
-    posicao = st.session_state.fila_entregadores.index(nome)+1 if selecionado else ""
-    classe = "entregador selecionado" if selecionado else "entregador"
-    if st.button(nome, key=f"entregador_{nome}"):
-        if not selecionado:
-            st.session_state.fila_entregadores.append(nome)
-    st.markdown(f"<div class='{classe}'>{f'{posicao}º<br>' if posicao else ''}{nome}</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+entregador_cols = st.columns(len(entregadores_default))
+for i, nome in enumerate(entregadores_default):
+    posicao = ""
+    is_selected = nome in st.session_state.fila_entregadores
+    if is_selected:
+        posicao = f"{st.session_state.fila_entregadores.index(nome)+1}º"
 
-# Exemplo de pedidos
+    with entregador_cols[i]:
+        if st.button(f"{nome}\n{posicao}" if posicao else nome, key=f"entregador_{nome}"):
+            if not is_selected:
+                st.session_state.fila_entregadores.append(nome)
+
 if "pedidos" not in st.session_state:
     st.session_state.pedidos = [
         {"id": 2050, "cliente": "Luiza Abreu", "bairro": "Centro", "itens": ["2x 🍔 Dubbo", "1x 🥤 Coca-Cola-Litro"], "codigo_ifood": "9873", "hora_criacao": time.time() - 300, "prazo_entrega_min": 35, "status": "em_preparo"},
