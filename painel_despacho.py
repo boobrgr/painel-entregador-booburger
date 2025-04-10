@@ -9,150 +9,125 @@ except ModuleNotFoundError:
     print("Erro: O módulo 'streamlit' não está instalado. Use 'pip install streamlit'.")
 else:
 
-    st.set_page_config(page_title="Painel de Despacho - Boo Burger", layout="wide")
+    st.set_page_config(page_title="Painel de Pedidos - Boo Burger", layout="wide")
 
     st.markdown("""
     <style>
+        body {
+            background-color: #f8f8f8;
+        }
         .top-bar {
-            background-color: #000;
-            color: white;
+            color: black;
             text-align: center;
-            padding: 10px 0;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            letter-spacing: 1px;
+            padding: 10px;
             margin-bottom: 20px;
         }
-        .entregador-button {
-            padding: 10px 16px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 12px;
+        .entregadores {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .entregador {
+            text-align: center;
             background-color: #eee;
+            border-radius: 12px;
+            padding: 10px;
+            width: 90px;
             font-weight: bold;
-            cursor: pointer;
         }
-        .entregador-selecionado {
-            background-color: #28a745 !important;
-            color: white !important;
+        .entregador.selecionado {
+            background-color: #28a745;
+            color: white;
         }
-        .card {
+        .pedido-card {
             background: white;
             border-radius: 20px;
-            padding: 14px;
-            margin-bottom: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            position: relative;
         }
-        .card-esmaecido {
-            opacity: 0.4;
+        .itens {
+            margin: 15px 0;
+            line-height: 1.6;
         }
         .tempo-circulo {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: 6px solid #444;
             background: #fff;
-            margin: auto;
+            margin: 10px auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
+        }
+        .botoes-status {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
         }
         .botoes-status button {
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .botao-pronto {
-            background: #28a745;
-            color: white;
-        }
-        .botao-saiu {
-            background: #ffc107;
-            color: black;
-        }
-        .remover {
-            position: absolute;
-            right: 12px;
-            top: 10px;
-            color: red;
             font-weight: bold;
             cursor: pointer;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class='top-bar'>
-        Boo Burger - Painel de Despacho
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='top-bar'>Painel de Pedidos - Boo Burger</div>", unsafe_allow_html=True)
 
-    entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "Davi Medeiros"]
+    entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "Davi"]
 
     if "fila_entregadores" not in st.session_state:
         st.session_state.fila_entregadores = []
 
-    st.write("## Entregadores")
-    cols = st.columns(len(entregadores_default))
-    for i, (nome, col) in enumerate(zip(entregadores_default, cols)):
-        if nome not in st.session_state.fila_entregadores:
-            if col.button(nome):
+    st.markdown("<div class='entregadores'>", unsafe_allow_html=True)
+    for i, nome in enumerate(entregadores_default):
+        selecionado = nome in st.session_state.fila_entregadores
+        posicao = st.session_state.fila_entregadores.index(nome)+1 if selecionado else ""
+        classe = "entregador selecionado" if selecionado else "entregador"
+        if st.button(nome, key=f"entregador_{nome}"):
+            if not selecionado:
                 st.session_state.fila_entregadores.append(nome)
-        else:
-            col.markdown(f"<button class='entregador-button entregador-selecionado'>{nome} ({st.session_state.fila_entregadores.index(nome)+1}º)</button>", unsafe_allow_html=True)
+        st.markdown(f"<div class='{classe}'>{f'{posicao}º<br>' if posicao else ''}{nome}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     if "pedidos" not in st.session_state:
         st.session_state.pedidos = [
-            {"id": 2050, "cliente": "Luiza Abreu", "bairro": "CENTRO", "itens": ["🍔 Byron x1", "🍟 Batata x2"], "codigo_ifood": "9873", "hora_criacao": time.time() - 180, "prazo_entrega_min": 35, "status": "em_preparo"},
-            {"id": 2051, "cliente": "Irineu", "bairro": "CENTRO", "itens": ["🍔 Boo x1", "🥐 Croissant x1"], "codigo_ifood": "6543", "hora_criacao": time.time() - 240, "prazo_entrega_min": 35, "status": "em_preparo"},
-            {"id": 2052, "cliente": "Rebeca", "bairro": "MUSSURUNGA", "itens": ["🍔 Dubbo x1", "🍟 Batata x1"], "codigo_ifood": "4321", "hora_criacao": time.time() - 300, "prazo_entrega_min": 30, "status": "em_preparo"},
-            {"id": 2053, "cliente": "Larissa", "bairro": "ITAPUÃ", "itens": ["🍔 Dubbo x1", "🥤 Suco x1"], "codigo_ifood": "1234", "hora_criacao": time.time() - 150, "prazo_entrega_min": 30, "status": "em_preparo"}
+            {"id": 2050, "cliente": "Luiza Abreu", "bairro": "Centro", "itens": ["2x 🍔 Dubbo", "1x 🥤 Coca-Cola-Litro"], "codigo_ifood": "9873", "hora_criacao": time.time() - 300, "prazo_entrega_min": 35, "status": "em_preparo"},
+            {"id": 2051, "cliente": "Irineu", "bairro": "Centro", "itens": ["1x 🍔 Boo", "1x 🥐 Croissant"], "codigo_ifood": "6543", "hora_criacao": time.time() - 240, "prazo_entrega_min": 30, "status": "em_preparo"},
+            {"id": 2052, "cliente": "Larissa", "bairro": "Itinga", "itens": ["1x 🍟 Batata", "1x 🥤 Suco de Laranja"], "codigo_ifood": "4312", "hora_criacao": time.time() - 100, "prazo_entrega_min": 25, "status": "em_preparo"}
         ]
 
-    pedidos = sorted(st.session_state.pedidos, key=lambda p: (p['status'] != 'em_preparo', p['hora_criacao']))
-    cols = st.columns(4)
-    for i, pedido in enumerate(pedidos):
-        col = cols[i % 4]
+    colunas = st.columns(3)
+    for i, pedido in enumerate(st.session_state.pedidos):
         restante = max(0, int(pedido['prazo_entrega_min'] - (time.time() - pedido['hora_criacao']) // 60))
-        classe = "card"
-        if pedido['status'] != "em_preparo":
-            classe += " card-esmaecido"
+        with colunas[i % 3]:
+            st.markdown("<div class='pedido-card'>", unsafe_allow_html=True)
+            st.markdown(f"**Cliente:** {pedido['cliente']}  ", unsafe_allow_html=True)
+            st.markdown(f"**Bairro:** {pedido['bairro']}  ", unsafe_allow_html=True)
+            st.markdown(f"**Pedido iFood:** #{pedido['codigo_ifood']}  ", unsafe_allow_html=True)
+            st.markdown("<div class='itens'>", unsafe_allow_html=True)
+            for item in pedido['itens']:
+                st.markdown(f"- {item}", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='tempo-circulo'><div>{restante}</div><div style='font-size:10px;'>min</div></div>", unsafe_allow_html=True)
 
-        with col:
-            st.markdown(f"""
-            <div class='{classe}'>
-                <div class='remover'>❌</div>
-                <div><strong>Pedido:</strong> {pedido['id']}</div>
-                <div><strong>Ifood:</strong> #{pedido['codigo_ifood']}</div>
-                <div><strong>Cliente:</strong> {pedido['cliente']}</div>
-                <div><strong>Bairro:</strong> {pedido['bairro']}</div>
-                <div style='margin-top:10px;'>
-                    {'<br>'.join(pedido['itens'])}
-                </div>
-                <div class='tempo-circulo' style='border-color: {'#dc3545' if pedido['status']=='em_preparo' else ('#28a745' if pedido['status']=='pronto' else '#ffc107')}'>
-                    <div>{restante}</div>
-                    <div style='font-size:10px;'>min</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            if st.button('✅ Pronto', key=f"pronto_{pedido['id']}"):
+            st.markdown("<div class='botoes-status'>", unsafe_allow_html=True)
+            if st.button(f"✅ Pronto {pedido['id']}"):
                 pedido['status'] = 'pronto'
-            if st.button('🚚 Saiu', key=f"saiu_{pedido['id']}"):
+            if st.button(f"🚚 Saiu {pedido['id']}"):
                 pedido['status'] = 'despachado'
-            if st.button(f"Remover {pedido['id']}", key=f"rm_{pedido['id']}"):
-                st.session_state.pedidos = [p for p in st.session_state.pedidos if p['id'] != pedido['id']]
-                st.stop()
+            st.markdown("</div>", unsafe_allow_html=True)
 
-            st.markdown(f"""
-                <div style='font-size:11px;text-align:center;margin-top:8px;'>
-                    Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
-                    Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min'] * 60).strftime('%H:%M')}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align:center;font-size:12px;margin-top:8px;'>Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min'] * 60).strftime('%H:%M')}</div>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
