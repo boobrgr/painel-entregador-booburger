@@ -64,9 +64,6 @@ if STREAMLIT_AVAILABLE:
             "JARDIM CARAPINA", "RECREIO DE IPITANGA", "CAJI"]
     }
 
-    DATA_FILE = "pedidos.json"
-    ENTREGADORES_FILE = "entregadores.json"
-
     st.markdown("<h2 style='margin-top: -10px;'>Painel de Pedidos - <span style='color:#f97316;'>Boo Burger</span></h2>", unsafe_allow_html=True)
 
     if "fila_entregadores" not in st.session_state:
@@ -89,7 +86,6 @@ if STREAMLIT_AVAILABLE:
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # Pedidos de exemplo com base na imagem enviada
     pedidos = [
         {
             "id": 2050,
@@ -151,12 +147,6 @@ if STREAMLIT_AVAILABLE:
 
     card_colunas = st.columns(4)
 
-    for pedido in pedidos:
-        if st.session_state.get(f'marcar_pronto_{pedido["id"]}'):
-            pedido['status'] = 'pronto'
-        if st.session_state.get(f'marcar_despachado_{pedido["id"]}'):
-            pedido['status'] = 'despachado'
-
     for i, pedido in enumerate(pedidos):
         cor = cor_zona.get(pedido['zona'], '#ffffff')
         restante = tempo_restante(pedido)
@@ -168,19 +158,20 @@ if STREAMLIT_AVAILABLE:
                     <strong>Cliente:</strong> {pedido['cliente']}<br>
                     <strong>Bairro:</strong> {pedido['bairro']}<br>
                     <div style='margin: 6px 0; font-size:15px;'>{pedido['itens'].replace(chr(10), '<br>')}</div>
-
                     <div style='width:60px;height:60px;border-radius:50%;border:8px solid #444;background:#fff;margin:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:16px;'>
                         <div>{restante}</div><div style='font-size:10px;'>min</div>
                     </div>
+            """, unsafe_allow_html=True)
 
-                    <div style='display:flex;justify-content:center;gap:8px;margin-top:8px;'>
-                        <form method='post'><button name='marcar_pronto_{pedido['id']}' style='background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Pronto</button></form>
-                        <form method='post'><button name='marcar_despachado_{pedido['id']}' style='background:#ffc107;border:none;color:#000;padding:6px 10px;border-radius:8px;text-align:center;font-weight:bold;width:100%;'>Saiu para Entrega</button></form>
-                    </div>
+            if st.button('Pronto', key=f"pronto_{pedido['id']}"):
+                pedido['status'] = 'pronto'
+            if st.button('Saiu para Entrega', key=f"despachado_{pedido['id']}"):
+                pedido['status'] = 'despachado'
 
-                    <div style='font-size:11px; text-align:center; margin-top:8px;'>
-                        Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
-                        Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min']*60).strftime('%H:%M')}
-                    </div>
+            st.markdown(f"""
+                <div style='font-size:11px; text-align:center; margin-top:8px;'>
+                    Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>
+                    Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min']*60).strftime('%H:%M')}
+                </div>
                 </div>
             """, unsafe_allow_html=True)
