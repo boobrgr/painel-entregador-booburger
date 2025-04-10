@@ -86,7 +86,56 @@ if STREAMLIT_AVAILABLE:
         else:
             if col.button(entregador, key=f"entregador_{i}"):
                 st.session_state.fila_entregadores.append(entregador)
+                st.experimental_rerun()
 
     st.markdown("<hr>", unsafe_allow_html=True)
+
+    # Pedidos de exemplo com base na imagem enviada
+    pedidos = [
+        {
+            "id": 2050,
+            "cliente": "Luiza Abreu",
+            "bairro": "CENTRO",
+            "itens": "🍔 Byron x1\n🍟 Batata x2",
+            "codigo_ifood": "9873",
+            "hora_criacao": time.time() - 300,
+            "prazo_entrega_min": 35,
+            "status": "em_preparo",
+            "zona": 5
+        },
+        {
+            "id": 2051,
+            "cliente": "Irineu",
+            "bairro": "IPITANGA",
+            "itens": "🍔 Boo x1\n🥐 Croissant x2\n🥤 Coca-Cola x1",
+            "codigo_ifood": "9912",
+            "hora_criacao": time.time() - 600,
+            "prazo_entrega_min": 40,
+            "status": "em_preparo",
+            "zona": 5
+        },
+        {
+            "id": 2052,
+            "cliente": "Rebeca",
+            "bairro": "ITAPUÃ",
+            "itens": "🍔 Bacon King x2\n🍟 Batata x1\n🥤 Suco x1",
+            "codigo_ifood": "9988",
+            "hora_criacao": time.time() - 400,
+            "prazo_entrega_min": 30,
+            "status": "em_preparo",
+            "zona": 6
+        },
+        {
+            "id": 2053,
+            "cliente": "Larissa",
+            "bairro": "MUSSURUNGA",
+            "itens": "🍔 Dubbo x1\n🥤 Guaraná x1",
+            "codigo_ifood": "9931",
+            "hora_criacao": time.time() - 700,
+            "prazo_entrega_min": 30,
+            "status": "em_preparo",
+            "zona": 6
+        }
+    ]
 
     # Continuação do painel será inserida abaixo...
