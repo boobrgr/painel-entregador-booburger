@@ -1,120 +1,379 @@
-import streamlit as st
-import time
-from datetime import datetime
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Pedidos - Boo Burger</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f3f3;
+    }
 
-st.set_page_config(page_title="Painel de Pedidos - Boo Burger", layout="wide")
+    header {
+      background-color: #222;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px;
+      font-size: 24px;
+    }
 
-st.markdown("""
-<style>
-    .top-bar {
-        color: black;
-        text-align: center;
-        font-size: 28px;
-        font-weight: bold;
-        padding: 10px;
-        margin-bottom: 30px;
+    header img {
+      height: 50px;
     }
-    .entregador-button {
-        padding: 8px 12px;
-        border: none;
-        border-radius: 12px;
-        background-color: #eee;
-        font-weight: bold;
-        cursor: pointer;
-        width: 100%;
-        height: 60px;
+
+    .entregadores {
+      background: #eee;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    .entregador-selecionado {
-        background-color: #28a745 !important;
-        color: white;
+
+    .entregador-btn {
+      background-color: #4CAF50;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      min-width: 100px;
+      transition: transform 0.2s;
     }
-    .pedido-card {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+
+    .entregador-btn:hover {
+      transform: scale(1.05);
     }
-    .itens {
-        margin: 15px 0;
-        line-height: 1.6;
+
+    .fila-indice {
+      display: block;
+      font-size: 10px;
+      margin-top: 2px;
     }
-    .tempo-circulo {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        border: 6px solid #444;
-        background: #fff;
-        margin: 10px auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 16px;
+
+    .painel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 20px;
     }
-    .botoes-status {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 10px;
+
+    .pedido {
+      border-radius: 14px;
+      padding: 16px;
+      background: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
-    .botoes-status button {
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    .cronometro-container {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+    }
+
+    .cronometro-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      transform: rotate(-90deg);
+    }
+
+    .cronometro-circle-bg {
+      fill: white;
+      stroke: #ccc;
+      stroke-width: 8;
+    }
+
+    .cronometro-circle {
+      fill: white;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transform-origin: center;
+      transition: stroke 0.3s, stroke-dashoffset 0.3s linear;
+    }
+
+    .cronometro-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .cronometro-text-inner {
+      display: inline-block;
+      color: white;
+    }
+
+    .piscar {
+      animation: piscar 1s infinite;
+      transform-origin: center;
+    }
+
+    @keyframes piscar {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .descricao-itens div {
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 10px;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .badge.pronto { background-color: #4CAF50; color: white; }
+    .badge.entrega { background-color: #f1c40f; color: #000; }
+
+    .info-extra {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+  .entregador-btn.selecionado {
+  background-color: #4CAF50;
+  color: white;
+}
+.btn-status {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-right: 8px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: 0.2s;
+}
+
+.btn-status.pronto.ativo {
+  background-color: #4CAF50;
+  color: white;
+  opacity: 1;
+}
+
+.btn-status.entrega.ativo {
+  background-color: #f1c40f;
+  color: #000;
+  opacity: 1;
+}
 </style>
-""", unsafe_allow_html=True)
+</head>
+<body>
 
-st.markdown("<div class='top-bar'>Painel de Pedidos - Boo Burger</div>", unsafe_allow_html=True)
+<header>
+  <img src="https://i.imgur.com/qHXy5vO.png" alt="Logo Boo Burger">
+  Painel de Pedidos - Boo Burger
+</header>
 
-entregadores_default = ["Edimilson", "Lucas", "Mãozinha", "Montanha", "Nino", "Davi"]
+<div class="entregadores" id="entregadores">
+  <!-- Entregadores dinâmicos aqui -->
+</div>
 
-if "fila_entregadores" not in st.session_state:
-    st.session_state.fila_entregadores = []
+<div class="painel" id="painel-pedidos"></div>
 
-entregador_cols = st.columns(len(entregadores_default))
-for i, nome in enumerate(entregadores_default):
-    posicao = ""
-    is_selected = nome in st.session_state.fila_entregadores
-    if is_selected:
-        posicao = f"{st.session_state.fila_entregadores.index(nome)+1}º"
+<script>
+  const entregadores = [
+    { nome: "Edimilson" },
+    { nome: "Lucas" },
+    { nome: "Jhonatan" },
+    { nome: "Montanha" },
+    { nome: "Nino" }
+  ];
+let filaSelecionados = [];
+  const pedidos = [
+    { cliente: "João B.", bairro: "Itapuã", numero: "2050", numero_ifood: "#9899", descricao: ["🍔 2x Dubbo", "🥤 1x Coca-Cola-Litro"], status: "Saiu para Entrega", inicio: "19:05", previsao: "20:05", tempo: 25 },
+    { cliente: "Victor L.", bairro: "Centro", numero: "2051", numero_ifood: "#6533", descricao: ["🍔 5x Byron", "*sem cebola", "🍟 3x Batata", "🥤 3x Coca-Cola-Litro"], status: "Saiu para Entrega", inicio: "19:06", previsao: "19:36", tempo: 15 },
+    { cliente: "Davi Medeiros", bairro: "Centro", numero: "2053", numero_ifood: "#9638", descricao: ["🍔 2x Dubbo", "🥤 1x Coca-Cola-Litro"], status: "Saiu para Entrega", inicio: "19:12", previsao: "19:42", tempo: 12 },
+    { cliente: "João Dantas", bairro: "Abrantes", numero: "2050", numero_ifood: "#9899", descricao: ["🍔 2x Dubbo", "🥤 1x Coca-Cola-Litro"], status: "Saiu para Entrega", inicio: "19:05", previsao: "19:35", tempo: 35 },
+    { cliente: "Fernando Liborio", bairro: "Centro", numero: "2051", numero_ifood: "#6533", descricao: ["🍔 2x Dubbo", "🥤 1x Coca-Cola-Litro"], status: "Saiu para Entrega", inicio: "19:05", previsao: "19:35", tempo: 25 }
+  ];
 
-    with entregador_cols[i]:
-        if st.button(f"{nome}\n{posicao}" if posicao else nome, key=f"entregador_{nome}"):
-            if not is_selected:
-                st.session_state.fila_entregadores.append(nome)
+  const coresPorBairro = {
+    "Centro": "#9be6ff",
+    "Itapuã": "#e0e0e0",
+    "Abrantes": "#fff1a8"
+  };
 
-if "pedidos" not in st.session_state:
-    st.session_state.pedidos = [
-        {"id": 2050, "cliente": "Luiza Abreu", "bairro": "Centro", "itens": ["2x 🍔 Dubbo", "1x 🥤 Coca-Cola-Litro"], "codigo_ifood": "9873", "hora_criacao": time.time() - 300, "prazo_entrega_min": 35, "status": "em_preparo"},
-        {"id": 2051, "cliente": "Irineu", "bairro": "Centro", "itens": ["1x 🍔 Boo", "1x 🥐 Croissant"], "codigo_ifood": "6543", "hora_criacao": time.time() - 240, "prazo_entrega_min": 30, "status": "em_preparo"},
-        {"id": 2052, "cliente": "Larissa", "bairro": "Itinga", "itens": ["1x 🍟 Batata", "1x 🥤 Suco de Laranja"], "codigo_ifood": "4312", "hora_criacao": time.time() - 100, "prazo_entrega_min": 25, "status": "em_preparo"}
-    ]
+  function renderEntregadores() {
+  const area = document.getElementById("entregadores");
+  area.innerHTML = "";
+  entregadores.forEach((e) => {
+    const btn = document.createElement("button");
+    btn.className = "entregador-btn";
 
-colunas = st.columns(3)
-for i, pedido in enumerate(st.session_state.pedidos):
-    restante = max(0, int(pedido['prazo_entrega_min'] - (time.time() - pedido['hora_criacao']) // 60))
-    with colunas[i % 3]:
-        st.markdown("<div class='pedido-card'>", unsafe_allow_html=True)
-        st.markdown(f"**Cliente:** {pedido['cliente']}  ", unsafe_allow_html=True)
-        st.markdown(f"**Bairro:** {pedido['bairro']}  ", unsafe_allow_html=True)
-        st.markdown(f"**Pedido iFood:** #{pedido['codigo_ifood']}  ", unsafe_allow_html=True)
-        st.markdown("<div class='itens'>", unsafe_allow_html=True)
-        for item in pedido['itens']:
-            st.markdown(f"- {item}", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='tempo-circulo'><div>{restante}</div><div style='font-size:10px;'>min</div></div>", unsafe_allow_html=True)
+    const indexNaFila = filaSelecionados.indexOf(e.nome);
+    if (indexNaFila !== -1) {
+      btn.classList.add("selecionado");
+      btn.innerHTML = `${e.nome}<span class="fila-indice">${indexNaFila + 1}º</span>`;
+    } else {
+      btn.innerHTML = `${e.nome}`;
+    }
 
-        st.markdown("<div class='botoes-status'>", unsafe_allow_html=True)
-        if st.button(f"✅ Pronto {pedido['id']}"):
-            pedido['status'] = 'pronto'
-        if st.button(f"🚚 Saiu {pedido['id']}"):
-            pedido['status'] = 'despachado'
-        st.markdown("</div>", unsafe_allow_html=True)
+    btn.onclick = () => {
+      const i = filaSelecionados.indexOf(e.nome);
+      if (i === -1) {
+        filaSelecionados.push(e.nome);
+      } else {
+        filaSelecionados.splice(i, 1);
+      }
+      renderEntregadores();
+    };
 
-        st.markdown(f"<div style='text-align:center;font-size:12px;margin-top:8px;'>Início: {datetime.fromtimestamp(pedido['hora_criacao']).strftime('%H:%M')}<br>Previsão: {datetime.fromtimestamp(pedido['hora_criacao'] + pedido['prazo_entrega_min'] * 60).strftime('%H:%M')}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    area.appendChild(btn);
+  });
+}
+
+
+  function createCircularTimer(container, tempoMinutos) {
+    const circle = container.querySelector(".cronometro-circle");
+    const text = container.querySelector(".cronometro-text-inner");
+    const radius = 26;
+    const circumference = 2 * Math.PI * radius;
+    let seconds = tempoMinutos * 60;
+
+    circle.style.strokeDasharray = circumference;
+
+    const interval = setInterval(() => {
+      const percent = seconds / (tempoMinutos * 60);
+      const offset = circumference * (1 - percent);
+      const min = Math.floor(seconds / 60);
+      circle.style.strokeDashoffset = offset;
+      text.innerText = `${min}min`;
+
+     const bgCircle = container.querySelector(".cronometro-circle-bg");
+
+if (seconds <= 900) {
+  circle.classList.add("piscar");
+  text.classList.add("piscar");
+  bgCircle.classList.add("piscar");
+  circle.style.stroke = "#ff0033";
+  text.style.color = "#ff0033";
+} else {
+  circle.classList.remove("piscar");
+  text.classList.remove("piscar");
+  bgCircle.classList.remove("piscar");
+  circle.style.stroke = "#2ecc71";
+  text.style.color = "#2ecc71";
+}
+
+      seconds--;
+      if (seconds < 0) clearInterval(interval);
+    }, 1000);
+  }
+
+  function renderPedidos() {
+    const painel = document.getElementById("painel-pedidos");
+    painel.innerHTML = "";
+    pedidos.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "pedido";
+      card.style.backgroundColor = coresPorBairro[p.bairro] || "#fff";
+
+      const topo = document.createElement("div");
+      topo.className = "topo";
+
+      const info = document.createElement("div");
+      info.innerHTML = `
+        <div><strong>Pedido:</strong> ${p.numero} &nbsp; <strong>Ifood:</strong> ${p.numero_ifood}</div>
+        <div><strong>Cliente:</strong> ${p.cliente}</div>
+        <div><strong>Bairro:</strong> ${p.bairro}</div>
+      `;
+
+      const cronometro = document.createElement("div");
+      cronometro.className = "cronometro-container";
+      cronometro.innerHTML = `
+        <svg class="cronometro-svg" viewBox="0 0 60 60">
+          <circle class="cronometro-circle-bg" cx="30" cy="30" r="26"/>
+          <circle class="cronometro-circle" cx="30" cy="30" r="26"/>
+        </svg>
+        <div class="cronometro-text"><span class="cronometro-text-inner">0m</span></div>
+      `;
+
+      topo.appendChild(info);
+      topo.appendChild(cronometro);
+      card.appendChild(topo);
+
+      const itens = document.createElement("div");
+      itens.className = "descricao-itens";
+      itens.innerHTML = p.descricao.map(i => `<div>${i}</div>`).join("");
+      card.appendChild(itens);
+
+const statusArea = document.createElement("div");
+statusArea.style.marginTop = "10px";
+
+const btnPronto = document.createElement("button");
+btnPronto.className = "btn-status pronto";
+btnPronto.innerText = "Pronto";
+btnPronto.onclick = () => {
+  p.status = "Pronto";
+  renderPedidos();
+};
+
+const btnEntrega = document.createElement("button");
+btnEntrega.className = "btn-status entrega";
+btnEntrega.innerText = "Saiu para Entrega";
+btnEntrega.onclick = () => {
+  const entregador = filaSelecionados.shift();
+  if (entregador) {
+    p.status = "Saiu para Entrega";
+    p.entregador = entregador;
+    renderEntregadores();
+    renderPedidos();
+  } else {
+    alert("Nenhum entregador selecionado!");
+  }
+};
+
+if (p.status === "Pronto") btnPronto.classList.add("ativo");
+if (p.status === "Saiu para Entrega") {
+  btnEntrega.classList.add("ativo");
+  const entregadorInfo = document.createElement("div");
+  entregadorInfo.className = "info-extra";
+  entregadorInfo.innerText = `Entregador: ${p.entregador || '---'}`;
+  card.appendChild(entregadorInfo);
+}
+
+statusArea.appendChild(btnPronto);
+statusArea.appendChild(btnEntrega);
+card.appendChild(statusArea);
+
+
+      const horarios = document.createElement("div");
+      horarios.className = "info-extra";
+      horarios.innerText = `Início: ${p.inicio} | Previsão: ${p.previsao}`;
+      card.appendChild(horarios);
+
+      painel.appendChild(card);
+      createCircularTimer(cronometro, p.tempo);
+    });
+  }
+
+  renderEntregadores();
+  renderPedidos();
+</script>
+</body>
+</html>
